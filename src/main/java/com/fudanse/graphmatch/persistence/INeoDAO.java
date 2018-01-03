@@ -9,7 +9,7 @@ public interface INeoDAO {
 	
 	public NeoNode addLabel(Integer id,String label);
 	
-	public void saveEdge(NeoNode left,NeoNode right,Edge e);
+	public void saveEdge(Integer left,Integer right,Edge e);
 	
 
 }

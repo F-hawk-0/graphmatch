@@ -11,7 +11,7 @@ import com.fudanse.graphmatch.model.NeoNode;
 import com.fudanse.graphmatch.util.CypherStatment;
 import com.fudanse.graphmatch.util.DBUtil;
 
-public class NeoDAO implements INeoDAO {
+public class JDBCNeoDAO implements INeoDAO {
 
 	@Override
 	public NeoNode saveNeoNode(NeoNode node) {
@@ -33,12 +33,12 @@ public class NeoDAO implements INeoDAO {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		node = returnNode;
+		node.setId(returnNode.getId());
 		return node;
 	}
 
 	@Override
-	public void saveEdge(NeoNode left, NeoNode right, Edge e) {
+	public void saveEdge(Integer left, Integer right, Edge e) {
 		try {
 			Connection con = DBUtil.getConnection();
 			Statement stmt = con.createStatement();

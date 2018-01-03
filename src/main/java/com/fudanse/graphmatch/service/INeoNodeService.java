@@ -7,6 +7,6 @@ public interface INeoNodeService {
 	
 	public NeoNode saveNode(NeoNode node);
 	
-	public boolean saveEdge(NeoNode left,NeoNode right,Edge e);
+	public boolean saveEdge(Integer left,Integer right,Edge e);
 
 }

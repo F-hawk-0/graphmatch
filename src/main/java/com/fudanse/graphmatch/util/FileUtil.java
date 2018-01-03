@@ -3,12 +3,14 @@ package com.fudanse.graphmatch.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 
 import japa.parser.JavaParser;
 import japa.parser.ast.CompilationUnit;
 
 public class FileUtil {
-	
+
 	public static CompilationUnit openCU(String filePath) {
 		CompilationUnit cu = null;
 
@@ -23,7 +25,7 @@ public class FileUtil {
 		}
 		return cu;
 	}
-	
+
 	public static CompilationUnit openCU(File file) {
 		CompilationUnit cu = null;
 
@@ -39,4 +41,28 @@ public class FileUtil {
 		return cu;
 	}
 
+	public static List<File> getJavaFiles(File file) {
+		List<File> javaFiles = new ArrayList<>();
+		if (!file.exists())
+			return null;
+		if (!file.isDirectory())
+			javaFiles.add(file);
+		else {
+			File[] files = file.listFiles();
+			for (File f : files) {
+				if (f.isDirectory())
+					javaFiles.addAll(getJavaFiles(f));
+				else if (f.getName().length() > 5 && f.getName().substring(f.getName().length() - 5).equals(".java")
+						&& except(f.getName()))
+					javaFiles.add(f);
+			}
+		}
+		return javaFiles;
+	}
+
+	private static boolean except(String fileName) {
+		if (fileName.equals("R.java") || fileName.equals("BuildConfig.java"))
+			return false;
+		return true;
+	}
 }

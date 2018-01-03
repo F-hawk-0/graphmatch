@@ -63,8 +63,10 @@ public class Neo4JUtil {
 		String greeting = session.writeTransaction(new TransactionWork<String>() {
 			public String execute(Transaction tx) {
 				StatementResult result = tx.run("CREATE (a:Greeting) " + "SET a.message = $message "
-						+ "RETURN a.message + ', from node ' + id(a)", parameters("message", message));
-				return result.single().get(0).asString();
+						+ "RETURN id(a)", parameters("message", message));
+				return result.single().get(0).toString();
+				//return result.single().get(0).asInt();
+				//return result.single().get(0).asString();
 			}
 		});
 		System.out.println(greeting);

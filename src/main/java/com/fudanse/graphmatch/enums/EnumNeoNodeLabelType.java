@@ -24,7 +24,8 @@ public enum EnumNeoNodeLabelType {
 	PROJECT("Project"),
 	PACKAGE("Package"),
 	CLASSORINTERFACE("ClassOrInterface"),
-	METHODDECLARATION("MethodDeclaration");
+	METHODDECLARATION("MethodDeclaration"),
+	CONDITION("Condition");
 
 	private String value;
 

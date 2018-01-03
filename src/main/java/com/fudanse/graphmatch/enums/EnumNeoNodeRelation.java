@@ -9,7 +9,9 @@ public enum EnumNeoNodeRelation {
 	FALSE("False"),
 	EQUALS("Equals"),
 	IN("In"),
-	ORDER("Order");
+	ORDER("Order"),
+	DEFAULT("Default");
+	
 
 	private String value;
 
