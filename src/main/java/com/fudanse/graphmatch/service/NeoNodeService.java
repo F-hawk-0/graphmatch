@@ -1,9 +1,5 @@
 package com.fudanse.graphmatch.service;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-
 import com.fudanse.graphmatch.model.Edge;
 import com.fudanse.graphmatch.model.NeoNode;
 import com.fudanse.graphmatch.persistence.INeoDAO;
