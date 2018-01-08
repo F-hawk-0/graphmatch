@@ -9,7 +9,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.fudanse.graphmatch.enums.EnumNeoNodeLabelType;
+import com.fudanse.graphmatch.enums.EnumNeoNodeRelation;
+import com.fudanse.graphmatch.model.Edge;
 import com.fudanse.graphmatch.model.NeoNode;
+import com.fudanse.graphmatch.model.VarNode;
 import com.fudanse.graphmatch.service.INeoNodeService;
 import com.fudanse.graphmatch.service.NeoNodeService;
 import com.fudanse.graphmatch.util.ConvertEnumUtil;
@@ -122,12 +125,12 @@ public class ProjectToGraph {
 		if (blockStmt == null)
 			return;
 		List<Statement> stmts = blockStmt.getStmts();
-		if(stmts == null)
+		if (stmts == null)
 			stmts = new ArrayList<>();
 		NeoNode preNode = null;
 		for (Statement stmt : stmts) {
 			// System.out.println("-----------------------------------------");
-			NeoNode node = create(stmt, map);
+			NeoNode node = create(stmt, map, new HashMap<>());
 			service.saveEdge(methodId, node.getId(), CypherStatment.PARNET);
 			if (preNode != null)
 				service.saveEdge(preNode.getId(), node.getId(), CypherStatment.ORDER);
@@ -135,15 +138,23 @@ public class ProjectToGraph {
 		}
 	}
 
-	private NeoNode create(Node node, Map<String, String> fieldMap) {
+	/**
+	 * 
+	 * @param node
+	 * @param fieldMap
+	 * @param varMap<变量名：变量赋值位置>
+	 * @return
+	 */
+	private NeoNode create(Node node, Map<String, String> fieldMap, Map<String, VarNode> varMap) {
 		NeoNode nn = null;
+		List<String> sortList = null; // 每个语句中的变量名列表
 		if (node == null)
 			return null;
 		if (node instanceof EnclosedExpr) { // 括号()
 			EnclosedExpr enclosedExpr = (EnclosedExpr) node;
-			nn = create(enclosedExpr.getInner(), fieldMap);
+			nn = create(enclosedExpr.getInner(), fieldMap, varMap);
 		} else if (node instanceof ExpressionStmt) { // 表达式
-			nn = create(((ExpressionStmt) node).getExpression(), fieldMap);
+			nn = create(((ExpressionStmt) node).getExpression(), fieldMap, varMap);
 		} else if (node instanceof MethodCallExpr) { // 方法调用
 			MethodCallExpr methodCallExpr = (MethodCallExpr) node;
 			if (!(methodCallExpr.getScope() != null && methodCallExpr.getScope().toString().startsWith("Log"))) {
@@ -163,10 +174,14 @@ public class ProjectToGraph {
 			AssignExpr assExpr = (AssignExpr) node;
 			nn = new NeoNode(EnumNeoNodeLabelType.ASSIGNEXPR.getValue(), convertType(assExpr, fieldMap));
 			service.saveNode(nn);
+			sortList = new ArrayList<>();
+			dataDependency(fieldMap, varMap, nn, sortList, assExpr);
 		} else if (node instanceof BinaryExpr) {
 			BinaryExpr binaryExpr = (BinaryExpr) node;
 			nn = new NeoNode(EnumNeoNodeLabelType.BINARYEXPR.getValue(), convertType(binaryExpr, fieldMap));
 			service.saveNode(nn);
+			sortList = new ArrayList<>();
+			dataDependency(fieldMap, varMap, nn, sortList, binaryExpr);
 		} else if (node instanceof VariableDeclarationExpr) {
 			VariableDeclarationExpr vde = (VariableDeclarationExpr) node;
 			nn = new NeoNode(EnumNeoNodeLabelType.VARIBLEDECLARATIONEXPR.getValue(), convertType(vde, fieldMap));
@@ -174,23 +189,23 @@ public class ProjectToGraph {
 		} else if (node instanceof BlockStmt) { // BlockStmt {}
 			nn = new NeoNode(EnumNeoNodeLabelType.BLOCKSTMT.getValue(), EnumNeoNodeLabelType.BLOCKSTMT.getValue());
 			service.saveNode(nn);
-			pcBlockStmt(nn, node, fieldMap);
+			pcBlockStmt(nn, node, fieldMap, varMap);
 		} else if (node instanceof IfStmt) {
 			IfStmt ifStmt = (IfStmt) node;
 			nn = new NeoNode(EnumNeoNodeLabelType.IFSTMT.getValue(), EnumNeoNodeLabelType.IFSTMT.getValue());
 			service.saveNode(nn);
 			Expression condition = ifStmt.getCondition();
-			NeoNode conditionNN = create(condition, fieldMap);
+			NeoNode conditionNN = create(condition, fieldMap, varMap);
 			service.saveEdge(nn.getId(), conditionNN.getId(), CypherStatment.PARNET);
 			Statement thenStmt = ifStmt.getThenStmt();
-			NeoNode thenNN = create(thenStmt, fieldMap);
+			NeoNode thenNN = create(thenStmt, fieldMap, varMap);
 			service.saveEdge(nn.getId(), thenNN.getId(), CypherStatment.PARNET);
 			service.saveEdge(conditionNN.getId(), thenNN.getId(), CypherStatment.TRUE); // 添加控制依赖
 			Statement elseStme = ifStmt.getElseStmt();
 			if (elseStme != null) {
 				NeoNode elseNN = null;
 				if (elseStme instanceof IfStmt) { // 处理else if语句
-					elseNN = create(elseStme, fieldMap);
+					elseNN = create(elseStme, fieldMap, varMap);
 					service.saveEdge(nn.getId(), elseNN.getId(), CypherStatment.PARNET);
 					service.saveEdge(conditionNN.getId(), elseNN.getId(), CypherStatment.FALSE);
 				} else {
@@ -198,18 +213,18 @@ public class ProjectToGraph {
 					elseNN = service.saveNode(elseNN);
 					service.saveEdge(nn.getId(), elseNN.getId(), CypherStatment.PARNET);
 					service.saveEdge(conditionNN.getId(), elseNN.getId(), CypherStatment.FALSE);
-					pcBlockStmt(elseNN, elseStme, fieldMap);
+					pcBlockStmt(elseNN, elseStme, fieldMap, varMap);
 				}
 			}
 		} else if (node instanceof SwitchStmt) {
 			SwitchStmt switchStmt = (SwitchStmt) node;
 			nn = new NeoNode(EnumNeoNodeLabelType.SWITCHSTMT.getValue(), EnumNeoNodeLabelType.SWITCHSTMT.getValue());
 			nn = service.saveNode(nn);
-			NeoNode condition = create(switchStmt.getSelector(), fieldMap);
+			NeoNode condition = create(switchStmt.getSelector(), fieldMap, varMap);
 			service.saveEdge(nn.getId(), condition.getId(), CypherStatment.PARNET);
 			List<SwitchEntryStmt> seStmts = ((SwitchStmt) node).getEntries();
 			for (SwitchEntryStmt seStmt : seStmts) {
-				NeoNode entry = create(seStmt, fieldMap);
+				NeoNode entry = create(seStmt, fieldMap, varMap);
 				service.saveEdge(nn.getId(), entry.getId(), CypherStatment.PARNET);
 				if (!entry.getName().equals("default"))
 					service.saveEdge(condition.getId(), entry.getId(), CypherStatment.EQUALS);
@@ -222,11 +237,11 @@ public class ProjectToGraph {
 					seStmt.getLabel() == null ? "default" : convertType(seStmt.getLabel(), fieldMap));
 			nn = service.saveNode(nn);
 			List<Statement> stmts = seStmt.getStmts();
-			if(stmts == null)
+			if (stmts == null)
 				stmts = new ArrayList<>();
 			NeoNode preNode = null;
 			for (Statement stmt : stmts) {
-				NeoNode stmtNN = create(stmt, fieldMap);
+				NeoNode stmtNN = create(stmt, fieldMap, varMap);
 				service.saveEdge(nn.getId(), stmtNN.getId(), CypherStatment.PARNET);
 				if (preNode != null)
 					service.saveEdge(preNode.getId(), stmtNN.getId(), CypherStatment.ORDER);
@@ -236,9 +251,9 @@ public class ProjectToGraph {
 			DoStmt doStmt = (DoStmt) node;
 			nn = new NeoNode(EnumNeoNodeLabelType.DOWHILESTMT.getValue(), EnumNeoNodeLabelType.DOWHILESTMT.getValue());
 			service.saveNode(nn);
-			NeoNode condition = create(doStmt.getCondition(), fieldMap);
+			NeoNode condition = create(doStmt.getCondition(), fieldMap, varMap);
 			service.saveEdge(nn.getId(), condition.getId(), CypherStatment.PARNET);
-			NeoNode body = create(doStmt.getBody(), fieldMap);
+			NeoNode body = create(doStmt.getBody(), fieldMap, varMap);
 			service.saveEdge(nn.getId(), body.getId(), CypherStatment.PARNET);
 			service.saveEdge(condition.getId(), body.getId(), CypherStatment.TRUE);
 			service.saveEdge(body.getId(), condition.getId(), CypherStatment.CDEPENDENCY);
@@ -246,9 +261,9 @@ public class ProjectToGraph {
 			WhileStmt whileStmt = (WhileStmt) node;
 			nn = new NeoNode(EnumNeoNodeLabelType.WHILESTMT.getValue(), EnumNeoNodeLabelType.WHILESTMT.getValue());
 			service.saveNode(nn);
-			NeoNode condition = create(whileStmt.getCondition(), fieldMap);
+			NeoNode condition = create(whileStmt.getCondition(), fieldMap, varMap);
 			service.saveEdge(nn.getId(), condition.getId(), CypherStatment.PARNET);
-			NeoNode body = create(whileStmt.getBody(), fieldMap);
+			NeoNode body = create(whileStmt.getBody(), fieldMap, varMap);
 			service.saveEdge(nn.getId(), body.getId(), CypherStatment.PARNET);
 			service.saveEdge(condition.getId(), body.getId(), CypherStatment.TRUE);
 			service.saveEdge(body.getId(), condition.getId(), CypherStatment.CDEPENDENCY);
@@ -262,11 +277,11 @@ public class ProjectToGraph {
 			service.saveNode(init);
 			service.saveEdge(nn.getId(), init.getId(), CypherStatment.PARNET);
 
-			NeoNode cmp = create(forStmt.getCompare(), fieldMap); // compare
+			NeoNode cmp = create(forStmt.getCompare(), fieldMap, varMap); // compare
 			service.saveEdge(nn.getId(), cmp.getId(), CypherStatment.PARNET);
 			service.saveEdge(init.getId(), cmp.getId(), CypherStatment.CDEPENDENCY);
 
-			NeoNode body = create(forStmt.getBody(), fieldMap); // body
+			NeoNode body = create(forStmt.getBody(), fieldMap, varMap); // body
 			service.saveEdge(nn.getId(), body.getId(), CypherStatment.PARNET);
 			service.saveEdge(cmp.getId(), body.getId(), CypherStatment.TRUE);
 
@@ -281,11 +296,11 @@ public class ProjectToGraph {
 			ForeachStmt foreachStmt = (ForeachStmt) node;
 			nn = new NeoNode(EnumNeoNodeLabelType.FOREACHSTMT.getValue(), EnumNeoNodeLabelType.FOREACHSTMT.getValue());
 			service.saveNode(nn);
-			NeoNode vdNN = create(foreachStmt.getVariable(), fieldMap);
+			NeoNode vdNN = create(foreachStmt.getVariable(), fieldMap, varMap);
 			service.saveEdge(nn.getId(), vdNN.getId(), CypherStatment.PARNET);
-			NeoNode iterable = create(foreachStmt.getIterable(), fieldMap);
+			NeoNode iterable = create(foreachStmt.getIterable(), fieldMap, varMap);
 			service.saveEdge(nn.getId(), iterable.getId(), CypherStatment.PARNET);
-			NeoNode body = create(foreachStmt.getBody(), fieldMap);
+			NeoNode body = create(foreachStmt.getBody(), fieldMap, varMap);
 			service.saveEdge(nn.getId(), body.getId(), CypherStatment.PARNET);
 			service.saveEdge(vdNN.getId(), iterable.getId(), CypherStatment.IN);
 			service.saveEdge(vdNN.getId(), body.getId(), CypherStatment.CDEPENDENCY);
@@ -298,6 +313,68 @@ public class ProjectToGraph {
 	}
 
 	/**
+	 * 
+	 * @param fieldMap<变量名:变量类型>
+	 * @param varMap<变量名:变量声明赋值位置>
+	 * @param nn<变量所在节点>
+	 * @param sortList<语句中变量列表>
+	 * @param node<语句node>
+	 */
+	private void dataDependency(Map<String, String> fieldMap, Map<String, VarNode> varMap, NeoNode nn,
+			List<String> sortList, Node node) {
+		if (node instanceof BinaryExpr) {
+			BinaryExpr binaryExpr = (BinaryExpr) node;
+			sortNameExpr(binaryExpr, fieldMap, sortList);
+			for (int i = 0; i < sortList.size(); i++) {
+				String var = sortList.get(i);
+				if (!varMap.containsKey(var))
+					continue;
+				VarNode varNode = varMap.get(var);
+				service.saveEdge(varNode.getId(), nn.getId(),
+						new Edge(EnumNeoNodeRelation.DDEPENDENCY.getValue(), varNode.getSignal(), i + ""));
+			}
+		} else if (node instanceof AssignExpr) {
+			AssignExpr assignExpr = (AssignExpr) node;
+			dataDependency(fieldMap, varMap, nn, sortList, assignExpr.getValue());
+		}
+	}
+
+	/**
+	 * 
+	 * @param node<语句node>
+	 * @param fieldMap<变量名:变量类型>
+	 * @param sortList<语句中变量列表>
+	 */
+	private void sortNameExpr(Node node, Map<String, String> fieldMap, List<String> sortList) {
+		if (node == null)
+			return;
+		if (node instanceof AssignExpr) {
+			AssignExpr assignExpr = (AssignExpr) node;
+			sortNameExpr(assignExpr.getTarget(), fieldMap, sortList);
+			sortNameExpr(assignExpr.getValue(), fieldMap, sortList);
+		} else if (node instanceof BinaryExpr) {
+			BinaryExpr binaryExpr = (BinaryExpr) node;
+			sortNameExpr(binaryExpr.getLeft(), fieldMap, sortList);
+			sortNameExpr(binaryExpr.getRight(), fieldMap, sortList);
+		} else if (node instanceof UnaryExpr) {
+			UnaryExpr unaryExpr = (UnaryExpr) node;
+			sortNameExpr(unaryExpr.getExpr(), fieldMap, sortList);
+		} else if (node instanceof MethodCallExpr) {
+			MethodCallExpr methodCallExpr = (MethodCallExpr) node;
+			if (methodCallExpr.getArgs() != null)
+				methodCallExpr.getArgs().stream().forEach((n) -> sortNameExpr(n, fieldMap, sortList));
+		} else if (node instanceof NameExpr) {
+			NameExpr nameExpr = (NameExpr) node;
+			sortList.add(nameExpr.getName());
+		} else if (node instanceof VariableDeclarationExpr) {
+			VariableDeclarationExpr vde = (VariableDeclarationExpr) node;
+			for (VariableDeclarator vd : vde.getVars())
+				if (vd.getInit() != null)
+					sortNameExpr(vd.getInit(), fieldMap, sortList);
+		}
+	}
+
+	/**
 	 * 处理if/for等语句的语句块，blockstmt或者expression
 	 * 
 	 * @param NeoNode
@@ -305,19 +382,19 @@ public class ProjectToGraph {
 	 * @param Node
 	 *            node
 	 */
-	private void pcBlockStmt(NeoNode nn, Node node, Map<String, String> map) {
+	private void pcBlockStmt(NeoNode nn, Node node, Map<String, String> map, Map<String, VarNode> varMap) {
 		if (node instanceof BlockStmt) { // 如果是带括号的，则把这些语句并列起来，父节点就是if
 			List<Statement> stmts = ((BlockStmt) node).getStmts();
 			NeoNode preNode = null;
 			for (Statement stmt : stmts) {
-				NeoNode stmtNN = create(stmt, map);
+				NeoNode stmtNN = create(stmt, map, varMap);
 				service.saveEdge(nn.getId(), stmtNN.getId(), CypherStatment.PARNET);
 				if (preNode != null)
 					service.saveEdge(preNode.getId(), stmtNN.getId(), CypherStatment.ORDER);
 				preNode = stmtNN;
 			}
 		} else {
-			NeoNode stmtNN = create(node, map);
+			NeoNode stmtNN = create(node, map, varMap);
 			service.saveEdge(nn.getId(), stmtNN.getId(), CypherStatment.PARNET);
 		}
 	}
@@ -332,9 +409,6 @@ public class ProjectToGraph {
 		NeoNode methodNode = new NeoNode(EnumNeoNodeLabelType.METHODDECLARATION.getValue(),
 				methodDeclaration.getName());
 		service.saveNode(methodNode);
-		if (methodDeclaration.getName().equals("dialogItemSelected")) {
-			System.out.println();
-		}
 		if (methodDeclaration.getParameters() != null)
 			for (Parameter parameter : methodDeclaration.getParameters()) {
 				map.put(parameter.getId().getName(), parameter.getType().toString());
@@ -513,8 +587,8 @@ public class ProjectToGraph {
 		 * pg.createMethod(method, map); } body.size();
 		 */
 		ProjectToGraph pg = new ProjectToGraph();
-		pg.analyzePj("/Users/xiyaoguo/Documents/androidproject/ChromeLikeSwipeLayout");
-//		pg.analyzePj("/Users/xiyaoguo/Desktop/WorldClock");
+		pg.analyzePj("/Users/xiyaoguo/Documents/androidproject/BeerSwipeRefresh");
+		// pg.analyzePj("/Users/xiyaoguo/Desktop/WorldClock");
 		// pg.convertType(node, map)
 	}
 

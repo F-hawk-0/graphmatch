@@ -23,13 +23,14 @@ public class CypherStatment {
 			EnumNeoNodeRelation.ORDER.getValue());
 
 	public static String getInsertCypher(NeoNode node) {
-		String insertCypher = "create(n:" + node.getLabel() + "{name:'" + node.getName() + "'}) set n:test2 return n";
+		String insertCypher = "CREATE(n:" + node.getLabel() + "{name:$name}) SET n:test2 RETURN id(n)";
 		return insertCypher;
 	}
 
 	public static String getInsertCypher(Integer left, Integer right, Edge e) {
-		String insertCypher = "Start a=node(" + left + "),b=node(" + right + ") create (a)-[r:"
-				+ e.getLabel() + "{name:'" + e.getName() + "'}]->(b)";
+		String insertCypher = "Start a=node(" + left + "),b=node(" + right + ") create (a)-[r:" + e.getLabel()
+				+ "{name:\'" + e.getName() + "\'" + (e.getSort() == null ? "" : ",sort:\'" + (e.getSort() + "\'"))
+				+ "}]->(b)";
 		return insertCypher;
 	}
 

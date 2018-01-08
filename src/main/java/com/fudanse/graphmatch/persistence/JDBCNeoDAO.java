@@ -14,7 +14,7 @@ import com.fudanse.graphmatch.util.DBUtil;
 public class JDBCNeoDAO implements INeoDAO {
 
 	@Override
-	public NeoNode saveNeoNode(NeoNode node) {
+	public Integer saveNeoNode(NeoNode node) {
 		NeoNode returnNode = null;
 		try {
 			Connection con = DBUtil.getConnection();
@@ -33,8 +33,7 @@ public class JDBCNeoDAO implements INeoDAO {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		node.setId(returnNode.getId());
-		return node;
+		return returnNode.getId();
 	}
 
 	@Override
@@ -51,8 +50,7 @@ public class JDBCNeoDAO implements INeoDAO {
 	}
 
 	@Override
-	public NeoNode addLabel(Integer id, String label) {
-		NeoNode returnNode = null;
+	public void addLabel(Integer id, String label) {
 		try {
 			Connection con = DBUtil.getConnection();
 			Statement stmt = con.createStatement();
@@ -63,7 +61,6 @@ public class JDBCNeoDAO implements INeoDAO {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return returnNode;
 	}
 
 	/*

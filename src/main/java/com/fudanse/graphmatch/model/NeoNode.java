@@ -1,10 +1,17 @@
 package com.fudanse.graphmatch.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NeoNode {
-
+public class NeoNode implements Serializable{
+	
+	
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private Integer id;
 	private List<String> labels = new ArrayList<>();
 	private String name;
