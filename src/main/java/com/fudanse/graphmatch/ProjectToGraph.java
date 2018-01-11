@@ -160,6 +160,8 @@ public class ProjectToGraph {
 			if (!(methodCallExpr.getScope() != null && methodCallExpr.getScope().toString().startsWith("Log"))) {
 				nn = new NeoNode(EnumNeoNodeLabelType.METHODCALLEXPR.getValue(), convertType(node, fieldMap));
 				service.saveNode(nn);
+				sortList = new ArrayList<>();
+				dataDependency(fieldMap, varMap, nn, sortList, methodCallExpr);
 			}
 		} else if (node instanceof ReturnStmt) { // Return语句，不往下细分？？？
 			String nodeString = node.toString();
@@ -186,6 +188,8 @@ public class ProjectToGraph {
 			VariableDeclarationExpr vde = (VariableDeclarationExpr) node;
 			nn = new NeoNode(EnumNeoNodeLabelType.VARIBLEDECLARATIONEXPR.getValue(), convertType(vde, fieldMap));
 			service.saveNode(nn);
+			sortList = new ArrayList<>();
+			dataDependency(fieldMap, varMap, nn, sortList, vde);
 		} else if (node instanceof BlockStmt) { // BlockStmt {}
 			nn = new NeoNode(EnumNeoNodeLabelType.BLOCKSTMT.getValue(), EnumNeoNodeLabelType.BLOCKSTMT.getValue());
 			service.saveNode(nn);
@@ -336,6 +340,42 @@ public class ProjectToGraph {
 		} else if (node instanceof AssignExpr) {
 			AssignExpr assignExpr = (AssignExpr) node;
 			dataDependency(fieldMap, varMap, nn, sortList, assignExpr.getValue());
+			VarNode varNode = new VarNode(nn.getId(), fieldMap.get(assignExpr.getTarget().toString()));
+			varMap.put(assignExpr.getTarget().toString(), varNode);
+		} else if (node instanceof MethodCallExpr) {
+			MethodCallExpr methodCallExpr = (MethodCallExpr) node;
+			if (methodCallExpr.getArgs() == null)
+				return;
+			sortNameExpr(methodCallExpr, fieldMap, sortList);
+			for (int i = 0; i < sortList.size(); i++) {
+				String var = sortList.get(i);
+				if (!varMap.containsKey(var))
+					continue;
+				VarNode varNode = varMap.get(var);
+				service.saveEdge(varNode.getId(), nn.getId(),
+						new Edge(EnumNeoNodeRelation.DDEPENDENCY.getValue(), varNode.getSignal(), i + ""));
+			}
+		} else if (node instanceof NameExpr) {
+			String name = ((NameExpr) node).getName();
+			if (!varMap.containsKey(name))
+				return;
+			VarNode varNode = varMap.get(name);
+			service.saveEdge(varNode.getId(), nn.getId(),
+					new Edge(EnumNeoNodeRelation.DDEPENDENCY.getValue(), varNode.getSignal(), "1"));
+		} else if (node instanceof VariableDeclarationExpr) {
+			VariableDeclarationExpr vde = (VariableDeclarationExpr) node;
+			sortNameExpr(vde, fieldMap, sortList);
+			for (VariableDeclarator vd : vde.getVars()) {
+				if (vd.getInit() == null)
+					continue;
+				dataDependency(fieldMap, varMap, nn, sortList, vd.getInit());
+			}
+			List<VariableDeclarator> vds = vde.getVars();
+			for (int i = 0; i < vds.size(); i++) {
+				VarNode varNode = new VarNode(nn.getId(), fieldMap.get(vds.get(0).getId().toString()));
+				varMap.put(vds.get(0).getId().toString(), varNode);
+			}
+
 		}
 	}
 
@@ -371,6 +411,9 @@ public class ProjectToGraph {
 			for (VariableDeclarator vd : vde.getVars())
 				if (vd.getInit() != null)
 					sortNameExpr(vd.getInit(), fieldMap, sortList);
+		} else if (node instanceof NameExpr) {
+			NameExpr nameExpr = (NameExpr) node;
+			sortList.add(nameExpr.getName());
 		}
 	}
 
