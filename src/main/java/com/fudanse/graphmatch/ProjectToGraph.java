@@ -49,6 +49,11 @@ import japa.parser.ast.stmt.SwitchEntryStmt;
 import japa.parser.ast.stmt.SwitchStmt;
 import japa.parser.ast.stmt.WhileStmt;
 
+/**
+ * 项目转图
+ * @author xiyaoguo
+ *
+ */
 public class ProjectToGraph {
 
 	private INeoNodeService service;
@@ -162,7 +167,8 @@ public class ProjectToGraph {
 				service.saveNode(nn);
 				sortList = new ArrayList<>();
 				dataDependency(fieldMap, varMap, nn, sortList, methodCallExpr);
-			}
+			}else
+				nn = new NeoNode();
 		} else if (node instanceof ReturnStmt) { // Return语句，不往下细分？？？
 			String nodeString = node.toString();
 			nn = new NeoNode(EnumNeoNodeLabelType.RETURNSTMT.getValue(),
@@ -553,9 +559,6 @@ public class ProjectToGraph {
 		if (td == null)
 			return null;
 		String className = td.getName();
-		if (className == "TimeZoneEdit.java") {
-			System.out.println(className);
-		}
 		NeoNode classNode = new NeoNode(EnumNeoNodeLabelType.CLASSORINTERFACE.getValue(), className);
 		service.saveNode(classNode);
 
@@ -629,8 +632,16 @@ public class ProjectToGraph {
 		 * map = new HashMap<>(); for (MethodDeclaration method : methods) {
 		 * pg.createMethod(method, map); } body.size();
 		 */
-		ProjectToGraph pg = new ProjectToGraph();
-		pg.analyzePj("/Users/xiyaoguo/Documents/androidproject/BeerSwipeRefresh");
+		File file = new File("");
+		ProjectToGraph pg = null;
+		if(file.isDirectory()) {
+			String[] pj = file.list();
+			for(String path : pj) {
+				pg = new ProjectToGraph();
+				pg.analyzePj(path);
+			}
+		}
+		//pg.analyzePj("/Users/xiyaoguo/Documents/androidproject/WaveSwipeRefreshLayout");
 		// pg.analyzePj("/Users/xiyaoguo/Desktop/WorldClock");
 		// pg.convertType(node, map)
 	}
