@@ -13,8 +13,8 @@ import org.neo4j.driver.v1.TransactionWork;
 public class Neo4JUtil {
 
 	private final static String uri = "bolt://localhost:7687";
-	private final static String username = "xiyaoguo@yeah.net";
-	private final static String password = "5611786xyy";
+	private final static String username = "neo4j";
+	private final static String password = "fdse";
 
 	public static Driver getDriver() {
 		Driver driver = null;

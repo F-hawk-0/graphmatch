@@ -638,7 +638,7 @@ public class ProjectToGraph {
 		 * map = new HashMap<>(); for (MethodDeclaration method : methods) {
 		 * pg.createMethod(method, map); } body.size();
 		 */
-		String basePath = "/Users/xiyaoguo/Documents/androidproject/";
+		String basePath = "/Users/xiyaoguo/Documents/androidpro";
 		File file = new File(basePath);
 		ProjectToGraph pg = null;
 		if (file.isDirectory()) {
@@ -648,6 +648,8 @@ public class ProjectToGraph {
 				pg.analyzePj(basePath + path);
 				System.out.println();
 			}
+		} else {
+			System.out.println("the file is not a directory!");
 		}
 		// pg.analyzePj("/Users/xiyaoguo/Documents/androidproject/WaveSwipeRefreshLayout");
 		// pg.analyzePj("/Users/xiyaoguo/Desktop/WorldClock");
