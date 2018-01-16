@@ -12,7 +12,7 @@ import org.neo4j.driver.v1.TransactionWork;
 
 public class Neo4JUtil {
 
-	private final static String uri = "bolt://10.131.252.110:7687";
+	private final static String uri = "bolt://localhost:7687";
 	private final static String username = "xiyaoguo@yeah.net";
 	private final static String password = "5611786xyy";
 

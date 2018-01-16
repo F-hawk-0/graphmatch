@@ -51,6 +51,7 @@ import japa.parser.ast.stmt.WhileStmt;
 
 /**
  * 项目转图
+ * 
  * @author xiyaoguo
  *
  */
@@ -77,7 +78,12 @@ public class ProjectToGraph {
 	public void analyzePj(File file) {
 		if (file == null)
 			return;
-		NeoNode pjNode = new NeoNode(EnumNeoNodeLabelType.PROJECT.getValue(), file.getName());
+		if (!file.isDirectory())
+			return;
+		String fileName = file.getName();
+		if (fileName.endsWith(".tar.gz"))
+			fileName = fileName.substring(0, fileName.length() - 7);
+		NeoNode pjNode = new NeoNode(EnumNeoNodeLabelType.PROJECT.getValue(), fileName);
 		pjNode = service.saveNode(pjNode);
 		// this.rootId = pjNode.getId();
 		List<File> javaFiles = FileUtil.getJavaFiles(file);
@@ -167,7 +173,7 @@ public class ProjectToGraph {
 				service.saveNode(nn);
 				sortList = new ArrayList<>();
 				dataDependency(fieldMap, varMap, nn, sortList, methodCallExpr);
-			}else
+			} else
 				nn = new NeoNode();
 		} else if (node instanceof ReturnStmt) { // Return语句，不往下细分？？？
 			String nodeString = node.toString();
@@ -632,16 +638,18 @@ public class ProjectToGraph {
 		 * map = new HashMap<>(); for (MethodDeclaration method : methods) {
 		 * pg.createMethod(method, map); } body.size();
 		 */
-		File file = new File("");
+		String basePath = "/Users/xiyaoguo/Documents/androidproject/";
+		File file = new File(basePath);
 		ProjectToGraph pg = null;
-		if(file.isDirectory()) {
+		if (file.isDirectory()) {
 			String[] pj = file.list();
-			for(String path : pj) {
+			for (String path : pj) {
 				pg = new ProjectToGraph();
-				pg.analyzePj(path);
+				pg.analyzePj(basePath + path);
+				System.out.println();
 			}
 		}
-		//pg.analyzePj("/Users/xiyaoguo/Documents/androidproject/WaveSwipeRefreshLayout");
+		// pg.analyzePj("/Users/xiyaoguo/Documents/androidproject/WaveSwipeRefreshLayout");
 		// pg.analyzePj("/Users/xiyaoguo/Desktop/WorldClock");
 		// pg.convertType(node, map)
 	}
