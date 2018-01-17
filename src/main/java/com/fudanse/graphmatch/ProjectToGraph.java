@@ -83,10 +83,13 @@ public class ProjectToGraph {
 		String fileName = file.getName();
 		if (fileName.endsWith(".tar.gz"))
 			fileName = fileName.substring(0, fileName.length() - 7);
+		List<File> javaFiles = FileUtil.getJavaFiles(file);
+		if (javaFiles.size() > 15)
+			return;
 		NeoNode pjNode = new NeoNode(EnumNeoNodeLabelType.PROJECT.getValue(), fileName);
 		pjNode = service.saveNode(pjNode);
 		// this.rootId = pjNode.getId();
-		List<File> javaFiles = FileUtil.getJavaFiles(file);
+
 		javaFiles.forEach((n) -> System.out.println(n.getAbsolutePath()));
 		analyzeJavaFile(pjNode, javaFiles);
 	}
@@ -441,12 +444,14 @@ public class ProjectToGraph {
 		if (node instanceof BlockStmt) { // 如果是带括号的，则把这些语句并列起来，父节点就是if
 			List<Statement> stmts = ((BlockStmt) node).getStmts();
 			NeoNode preNode = null;
-			for (Statement stmt : stmts) {
-				NeoNode stmtNN = create(stmt, map, varMap);
-				service.saveEdge(nn.getId(), stmtNN.getId(), CypherStatment.PARNET);
-				if (preNode != null)
-					service.saveEdge(preNode.getId(), stmtNN.getId(), CypherStatment.ORDER);
-				preNode = stmtNN;
+			if (stmts != null) {
+				for (Statement stmt : stmts) {
+					NeoNode stmtNN = create(stmt, map, varMap);
+					service.saveEdge(nn.getId(), stmtNN.getId(), CypherStatment.PARNET);
+					if (preNode != null)
+						service.saveEdge(preNode.getId(), stmtNN.getId(), CypherStatment.ORDER);
+					preNode = stmtNN;
+				}
 			}
 		} else {
 			NeoNode stmtNN = create(node, map, varMap);
