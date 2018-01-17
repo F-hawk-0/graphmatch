@@ -290,8 +290,11 @@ public class ProjectToGraph {
 			ForStmt forStmt = (ForStmt) node;
 			nn = new NeoNode(EnumNeoNodeLabelType.FORSTMT.getValue(), EnumNeoNodeLabelType.FORSTMT.getValue());
 			service.saveNode(nn);
-			String initstr = forStmt.getInit().stream().map((n) -> convertType(n, fieldMap))
-					.collect(Collectors.joining(","));
+			String initstr = "";
+			if (forStmt.getInit() != null) {
+				initstr = forStmt.getInit().stream().map((n) -> convertType(n, fieldMap))
+						.collect(Collectors.joining(","));
+			}
 			NeoNode init = new NeoNode(EnumNeoNodeLabelType.FORINIT.getValue(), initstr); // init
 			service.saveNode(init);
 			service.saveEdge(nn.getId(), init.getId(), CypherStatment.PARNET);
@@ -304,8 +307,10 @@ public class ProjectToGraph {
 			service.saveEdge(nn.getId(), body.getId(), CypherStatment.PARNET);
 			service.saveEdge(cmp.getId(), body.getId(), CypherStatment.TRUE);
 
-			String updatestr = forStmt.getUpdate().stream().map((n) -> convertType(n, fieldMap))
-					.collect(Collectors.joining(","));
+			String updatestr = "";
+			if (forStmt.getUpdate() != null)
+				updatestr = forStmt.getUpdate().stream().map((n) -> convertType(n, fieldMap))
+						.collect(Collectors.joining(","));
 			NeoNode update = new NeoNode(EnumNeoNodeLabelType.FORUPDATE.getValue(), updatestr); // update
 			update = service.saveNode(update);
 			service.saveEdge(nn.getId(), update.getId(), CypherStatment.PARNET);
