@@ -300,12 +300,16 @@ public class ProjectToGraph {
 			service.saveEdge(nn.getId(), init.getId(), CypherStatment.PARNET);
 
 			NeoNode cmp = create(forStmt.getCompare(), fieldMap, varMap); // compare
-			service.saveEdge(nn.getId(), cmp.getId(), CypherStatment.PARNET);
-			service.saveEdge(init.getId(), cmp.getId(), CypherStatment.CDEPENDENCY);
+			if (cmp != null) {
+				service.saveEdge(nn.getId(), cmp.getId(), CypherStatment.PARNET);
+				service.saveEdge(init.getId(), cmp.getId(), CypherStatment.CDEPENDENCY);
+			}
 
 			NeoNode body = create(forStmt.getBody(), fieldMap, varMap); // body
-			service.saveEdge(nn.getId(), body.getId(), CypherStatment.PARNET);
-			service.saveEdge(cmp.getId(), body.getId(), CypherStatment.TRUE);
+			if (body != null) {
+				service.saveEdge(nn.getId(), body.getId(), CypherStatment.PARNET);
+				service.saveEdge(cmp.getId(), body.getId(), CypherStatment.TRUE);
+			}
 
 			String updatestr = "";
 			if (forStmt.getUpdate() != null)
@@ -313,9 +317,12 @@ public class ProjectToGraph {
 						.collect(Collectors.joining(","));
 			NeoNode update = new NeoNode(EnumNeoNodeLabelType.FORUPDATE.getValue(), updatestr); // update
 			update = service.saveNode(update);
-			service.saveEdge(nn.getId(), update.getId(), CypherStatment.PARNET);
-			service.saveEdge(body.getId(), update.getId(), CypherStatment.CDEPENDENCY);
-			service.saveEdge(update.getId(), cmp.getId(), CypherStatment.CDEPENDENCY);
+			if (update != null)
+				service.saveEdge(nn.getId(), update.getId(), CypherStatment.PARNET);
+			if (body != null && update != null)
+				service.saveEdge(body.getId(), update.getId(), CypherStatment.CDEPENDENCY);
+			if (update != null && cmp != null)
+				service.saveEdge(update.getId(), cmp.getId(), CypherStatment.CDEPENDENCY);
 		} else if (node instanceof ForeachStmt) { // foreach语句
 			ForeachStmt foreachStmt = (ForeachStmt) node;
 			nn = new NeoNode(EnumNeoNodeLabelType.FOREACHSTMT.getValue(), EnumNeoNodeLabelType.FOREACHSTMT.getValue());
