@@ -84,7 +84,7 @@ public class ProjectToGraph {
 		if (fileName.endsWith(".tar.gz"))
 			fileName = fileName.substring(0, fileName.length() - 7);
 		List<File> javaFiles = FileUtil.getJavaFiles(file);
-		if (javaFiles.size() > 15)
+		if (javaFiles.size() > 25)
 			return;
 		NeoNode pjNode = new NeoNode(EnumNeoNodeLabelType.PROJECT.getValue(), fileName);
 		pjNode = service.saveNode(pjNode);
