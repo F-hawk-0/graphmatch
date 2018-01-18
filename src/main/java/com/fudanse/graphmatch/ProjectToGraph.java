@@ -73,6 +73,7 @@ public class ProjectToGraph {
 	public void analyzePj(String filePath) {
 		File file = new File(filePath);
 		analyzePj(file);
+		file.renameTo(new File("/home/fdse/xiyaoguo/javacode/app1/" + file.getName()));
 	}
 
 	public void analyzePj(File file) {
