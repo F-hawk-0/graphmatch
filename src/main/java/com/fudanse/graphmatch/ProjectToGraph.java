@@ -72,6 +72,7 @@ public class ProjectToGraph {
 
 	public void analyzePj(String filePath) {
 		File file = new File(filePath);
+		System.out.println(file.getName());
 		analyzePj(file);
 		file.renameTo(new File("/home/fdse/xiyaoguo/javacode/app1/" + file.getName()));
 		System.out.println(file.getName() + "has been moved!");
@@ -86,6 +87,7 @@ public class ProjectToGraph {
 		if (fileName.endsWith(".tar.gz"))
 			fileName = fileName.substring(0, fileName.length() - 7);
 		List<File> javaFiles = FileUtil.getJavaFiles(file);
+		System.out.println("this file has " + javaFiles.size() + " class");
 		if (javaFiles.size() > 25)
 			return;
 		NeoNode pjNode = new NeoNode(EnumNeoNodeLabelType.PROJECT.getValue(), fileName);
