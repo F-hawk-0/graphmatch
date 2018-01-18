@@ -19,6 +19,8 @@
 *.tar.gz
 *.rar
 
+# shell
+start.sh
 
 target/
 pom.xml.tag
