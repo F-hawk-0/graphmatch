@@ -74,6 +74,7 @@ public class ProjectToGraph {
 		File file = new File(filePath);
 		analyzePj(file);
 		file.renameTo(new File("/home/fdse/xiyaoguo/javacode/app1/" + file.getName()));
+		System.out.println(file.getName() + "has been moved!");
 	}
 
 	public void analyzePj(File file) {
