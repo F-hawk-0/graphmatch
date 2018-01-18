@@ -105,7 +105,8 @@ public class ProjectToGraph {
 			Integer classId = createClass(cu);// class
 			if (classId == null)
 				continue;
-			service.saveEdge(pgId, classId, CypherStatment.PARNET);
+			if (pgId != null)
+				service.saveEdge(pgId, classId, CypherStatment.PARNET);
 			List<BodyDeclaration> body = getBodyList(cu);
 			Map<String, String> fieldMap = getField(body);
 			List<MethodDeclaration> methods = getMethodList(body);
@@ -628,14 +629,19 @@ public class ProjectToGraph {
 	 * @return package's id
 	 */
 	private Integer createPackage(NeoNode pjNode, CompilationUnit cu) {
-		String pgName = cu.getPackage().getName().toString();
-		if (!pgNIdPair.containsKey(pgName)) {
-			NeoNode pgNode = new NeoNode(EnumNeoNodeLabelType.PACKAGE.getValue(), pgName);
-			pgNode = service.saveNode(pgNode);
-			service.saveEdge(pjNode.getId(), pgNode.getId(), CypherStatment.PARNET);
-			pgNIdPair.put(pgName, pgNode.getId());
+		try {
+			String pgName = cu.getPackage().getName().toString();
+			if (!pgNIdPair.containsKey(pgName)) {
+				NeoNode pgNode = new NeoNode(EnumNeoNodeLabelType.PACKAGE.getValue(), pgName);
+				pgNode = service.saveNode(pgNode);
+				service.saveEdge(pjNode.getId(), pgNode.getId(), CypherStatment.PARNET);
+				pgNIdPair.put(pgName, pgNode.getId());
+			}
+			return pgNIdPair.get(pgName);
+		} catch (NullPointerException e) {
+
 		}
-		return pgNIdPair.get(pgName);
+		return null;
 	}
 
 	public INeoNodeService getService() {
