@@ -243,14 +243,15 @@ public class ProjectToGraph {
 			NeoNode condition = create(switchStmt.getSelector(), fieldMap, varMap);
 			service.saveEdge(nn.getId(), condition.getId(), CypherStatment.PARNET);
 			List<SwitchEntryStmt> seStmts = ((SwitchStmt) node).getEntries();
-			for (SwitchEntryStmt seStmt : seStmts) {
-				NeoNode entry = create(seStmt, fieldMap, varMap);
-				service.saveEdge(nn.getId(), entry.getId(), CypherStatment.PARNET);
-				if (!entry.getName().equals("default"))
-					service.saveEdge(condition.getId(), entry.getId(), CypherStatment.EQUALS);
-				else
-					service.saveEdge(condition.getId(), entry.getId(), CypherStatment.DEFAULT);
-			}
+			if (seStmts != null)
+				for (SwitchEntryStmt seStmt : seStmts) {
+					NeoNode entry = create(seStmt, fieldMap, varMap);
+					service.saveEdge(nn.getId(), entry.getId(), CypherStatment.PARNET);
+					if (!entry.getName().equals("default"))
+						service.saveEdge(condition.getId(), entry.getId(), CypherStatment.EQUALS);
+					else
+						service.saveEdge(condition.getId(), entry.getId(), CypherStatment.DEFAULT);
+				}
 		} else if (node instanceof SwitchEntryStmt) {
 			SwitchEntryStmt seStmt = (SwitchEntryStmt) node;
 			nn = new NeoNode(EnumNeoNodeLabelType.SWITCHENTRY.getValue(),
