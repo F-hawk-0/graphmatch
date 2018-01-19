@@ -74,8 +74,8 @@ public class ProjectToGraph {
 		File file = new File(filePath);
 		System.out.println(file.getName());
 		analyzePj(file);
-		file.renameTo(new File("/home/fdse/xiyaoguo/javacode/app1/" + file.getName()));
-		System.out.println(file.getName() + "has been moved!");
+		//file.renameTo(new File("/home/fdse/xiyaoguo/javacode/app1/" + file.getName()));
+		//System.out.println(file.getName() + "has been moved!");
 	}
 
 	public void analyzePj(File file) {
@@ -666,7 +666,7 @@ public class ProjectToGraph {
 		 * map = new HashMap<>(); for (MethodDeclaration method : methods) {
 		 * pg.createMethod(method, map); } body.size();
 		 */
-		String basePath = "/home/fdse/xiyaoguo/javacode/apptemp/";
+		String basePath = "/home/fdse/xiyaoguo/javacode/pullrefresh/";
 		File file = new File(basePath);
 		ProjectToGraph pg = null;
 		if (file.isDirectory()) {
