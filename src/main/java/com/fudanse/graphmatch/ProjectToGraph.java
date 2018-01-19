@@ -74,8 +74,9 @@ public class ProjectToGraph {
 		File file = new File(filePath);
 		System.out.println(file.getName());
 		analyzePj(file);
-		//file.renameTo(new File("/home/fdse/xiyaoguo/javacode/app1/" + file.getName()));
-		//System.out.println(file.getName() + "has been moved!");
+		// file.renameTo(new File("/home/fdse/xiyaoguo/javacode/app1/" +
+		// file.getName()));
+		// System.out.println(file.getName() + "has been moved!");
 	}
 
 	public void analyzePj(File file) {
@@ -88,8 +89,8 @@ public class ProjectToGraph {
 			fileName = fileName.substring(0, fileName.length() - 7);
 		List<File> javaFiles = FileUtil.getJavaFiles(file);
 		System.out.println("this file has " + javaFiles.size() + " class");
-		//if (javaFiles.size() > 25)
-		//	return;
+		// if (javaFiles.size() > 25)
+		// return;
 		NeoNode pjNode = new NeoNode(EnumNeoNodeLabelType.PROJECT.getValue(), fileName);
 		pjNode = service.saveNode(pjNode);
 		// this.rootId = pjNode.getId();
@@ -314,7 +315,8 @@ public class ProjectToGraph {
 			NeoNode body = create(forStmt.getBody(), fieldMap, varMap); // body
 			if (body != null) {
 				service.saveEdge(nn.getId(), body.getId(), CypherStatment.PARNET);
-				service.saveEdge(cmp.getId(), body.getId(), CypherStatment.TRUE);
+				if (cmp != null)
+					service.saveEdge(cmp.getId(), body.getId(), CypherStatment.TRUE);
 			}
 
 			String updatestr = "";
