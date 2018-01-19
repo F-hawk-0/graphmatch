@@ -88,8 +88,8 @@ public class ProjectToGraph {
 			fileName = fileName.substring(0, fileName.length() - 7);
 		List<File> javaFiles = FileUtil.getJavaFiles(file);
 		System.out.println("this file has " + javaFiles.size() + " class");
-		if (javaFiles.size() > 25)
-			return;
+		//if (javaFiles.size() > 25)
+		//	return;
 		NeoNode pjNode = new NeoNode(EnumNeoNodeLabelType.PROJECT.getValue(), fileName);
 		pjNode = service.saveNode(pjNode);
 		// this.rootId = pjNode.getId();
