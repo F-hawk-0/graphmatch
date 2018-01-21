@@ -668,7 +668,7 @@ public class ProjectToGraph {
 		 * map = new HashMap<>(); for (MethodDeclaration method : methods) {
 		 * pg.createMethod(method, map); } body.size();
 		 */
-		String basePath = "/home/fdse/xiyaoguo/javacode/viewpager/";
+		String basePath = "/home/fdse/xiyaoguo/javacode/slideswitch/";
 		File file = new File(basePath);
 		ProjectToGraph pg = null;
 		if (file.isDirectory()) {
