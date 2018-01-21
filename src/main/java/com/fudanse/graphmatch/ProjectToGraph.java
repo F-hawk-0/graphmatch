@@ -668,15 +668,17 @@ public class ProjectToGraph {
 		 * map = new HashMap<>(); for (MethodDeclaration method : methods) {
 		 * pg.createMethod(method, map); } body.size();
 		 */
-		String basePath = "/home/fdse/xiyaoguo/javacode/slideswitch/";
+		String basePath = "/Users/xiyaoguo/Documents/workspace/Android Studio/";
 		File file = new File(basePath);
 		ProjectToGraph pg = null;
 		if (file.isDirectory()) {
 			String[] pj = file.list();
 			for (String path : pj) {
-				pg = new ProjectToGraph();
-				pg.analyzePj(basePath + path);
-				System.out.println();
+				if (!path.startsWith(".")) {
+					pg = new ProjectToGraph();
+					pg.analyzePj(basePath + path);
+					System.out.println();
+				}
 			}
 		} else {
 			System.out.println("the file is not a directory!");

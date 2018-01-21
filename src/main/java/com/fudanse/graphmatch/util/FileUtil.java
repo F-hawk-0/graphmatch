@@ -61,7 +61,8 @@ public class FileUtil {
 	}
 
 	private static boolean except(String fileName) {
-		if (fileName.equals("R.java") || fileName.equals("BuildConfig.java"))
+		if (fileName.equals("R.java") || fileName.equals("BuildConfig.java") || fileName.startsWith(".")
+				|| fileName.startsWith("_") || fileName.startsWith("Test") || fileName.endsWith("Test.java"))
 			return false;
 		return true;
 	}
