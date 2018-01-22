@@ -89,8 +89,8 @@ public class ProjectToGraph {
 			fileName = fileName.substring(0, fileName.length() - 7);
 		List<File> javaFiles = FileUtil.getJavaFiles(file);
 		System.out.println("this file has " + javaFiles.size() + " class");
-		// if (javaFiles.size() > 25)
-		// return;
+		if (javaFiles.size() > 25)
+			return;
 		NeoNode pjNode = new NeoNode(EnumNeoNodeLabelType.PROJECT.getValue(), fileName);
 		pjNode = service.saveNode(pjNode);
 		// this.rootId = pjNode.getId();
@@ -668,7 +668,7 @@ public class ProjectToGraph {
 		 * map = new HashMap<>(); for (MethodDeclaration method : methods) {
 		 * pg.createMethod(method, map); } body.size();
 		 */
-		String basePath = "/home/fdse/xiyaoguo/javacode/slidescreen/";
+		String basePath = "/home/fdse/xiyaoguo/javacode/app/";
 		File file = new File(basePath);
 		ProjectToGraph pg = null;
 		if (file.isDirectory()) {
