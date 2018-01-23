@@ -1,5 +1,7 @@
 package com.fudanse.graphmatch.util;
 
+import java.util.List;
+
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
@@ -60,11 +62,12 @@ public class Neo4JUtil {
 		Transaction tx = session.beginTransaction();
 
 		StatementResult result = tx.run(
-				"match p=(n:Project)-[:Parent*0..]->(m:MethodDeclaration{name:'onTouchEvent'})-[*1..]->(b:SwitchStmt{name:'SwitchStmt'})-[:Parent]->(d:SwitchEntry{name:'MotionEvent.ACTION_DOWN'})-[:Parent*1..]->(e) return p");
-
+				"match p=(n:Project)-[:Parent*0..]->(m:MethodDeclaration{name:'onTouchEvent'})-[*1..]->(b:SwitchStmt{name:'SwitchStmt'})-[r:Parent]->(d:SwitchEntr)-[:Parent*1..]->(e) where d.name in ['MotionEvent.ACTION_DOWN','MotionEvent.ACTION_MOVE','MotionEvent.ACTION_UP'] and count(r)=3 return p");
+//		List<Record> r = result.list();
 		for (Record r : result.list()) {
 			System.out.println(r.get(0));
 		}
+//		System.out.println(result.list().size());
 
 	}
 

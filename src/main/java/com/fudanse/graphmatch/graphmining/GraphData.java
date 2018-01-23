@@ -12,7 +12,8 @@ import org.neo4j.driver.v1.Transaction;
  */
 public class GraphData {
 	public static final double sup = 0.6;
-	public final static Driver driver = GraphDatabase.driver("bolt://10.141.221.72:7687", AuthTokens.basic("neo4j", "fdse"));
+	public final static Driver driver = GraphDatabase.driver("bolt://10.141.221.72:7687",
+			AuthTokens.basic("neo4j", "fdse"));
 	public static Session session = null;
 	public static Transaction tx = null;
 
@@ -31,11 +32,11 @@ public class GraphData {
 	public static void main(String[] args) {
 		try {
 			GraphData.databaseConnection();
-			String str = "match p=(n:Project)-[:Parent*0..]->(m:MethodDeclaration{name:'onTouchEvent'})-[*1..]->(b:SwitchStmt{name:'SwitchStmt'})-[:Parent]->(d:SwitchEntry{name:'MotionEvent.ACTION_MOVE'})-[:Parent*1..]->(e) return p";
+			String str = "match (n:Project)-[:Parent*0..]->(m:MethodDeclaration{name:'onTouchEvent'})-[*1..]->(b:SwitchStmt{name:'SwitchStmt'})-[:Parent]->(d:SwitchEntry{name:'MotionEvent.ACTION_MOVE'}) with d match p=(d)-[:Parent*1..]->(e)  return p";
 			StatementResult result = GraphData.graphMatch(str);
 			AuthoritativePaths auPaths = SubGraphMining.miningProcess(result);
 			// System.out.println(auPaths.visualizationPaths());
-			//auPaths.outputPath();
+			// auPaths.outputPath();
 			System.out.println(auPaths.visualizationPaths2());
 		} catch (Exception e) {
 			e.printStackTrace();
