@@ -667,7 +667,7 @@ public class ProjectToGraph {
 		 * map = new HashMap<>(); for (MethodDeclaration method : methods) {
 		 * pg.createMethod(method, map); } body.size();
 		 */
-		String basePath = "/home/fdse/xiyaoguo/javacode/apptemp/";
+		String basePath = "/home/fdse/xiyaoguo/javacode/app/";
 		File file = new File(basePath);
 		ProjectToGraph pg = null;
 		if (file.isDirectory()) {
