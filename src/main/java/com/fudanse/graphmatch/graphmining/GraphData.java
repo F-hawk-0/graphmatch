@@ -32,7 +32,18 @@ public class GraphData {
 	public static void main(String[] args) {
 		try {
 			GraphData.databaseConnection();
-			String str = "match p=(n:Project)-[:Parent*0..]->(m:MethodDeclaration{name:'onFling'})-[:Parent*1..]->(b) return p";
+			//onFling
+			//String str = "match p=(n:Project)-[:Parent*0..]->(m:MethodDeclaration{name:'onFling'})-[:Parent*1..]->(d:MethodCallExpr)-[:Parent*0..]->(f) where d.name in ['this.flipper.showPrevious()','this.flipper.showNext()'] return p";
+			
+			//DOWN
+			//String str = "match (n:Project)-[:Parent*0..]->(m:MethodDeclaration{name:'onTouchEvent'})-[:Parent*1..]->(b:SwitchStmt{name:'SwitchStmt'})-[:Parent]->(d:SwitchEntry{name:'MotionEvent.ACTION_DOWN'}) with d match p=(d)-[:Parent*1..]->(e)  return p";
+			
+			//MOVE
+			String str = "match (n:Project)-[:Parent*0..]->(m:MethodDeclaration{name:'onTouchEvent'})-[:Parent*1..]->(b:SwitchStmt{name:'SwitchStmt'})-[:Parent]->(d:SwitchEntry{name:'MotionEvent.ACTION_MOVE'}) with d match p=(d)-[:Parent*1..]->(e)  return p";
+			
+			//UP
+			//String str = "match (n:Project)-[:Parent*0..]->(m:MethodDeclaration{name:'onTouchEvent'})-[:Parent*1..]->(b:SwitchStmt{name:'SwitchStmt'})-[:Parent]->(d:SwitchEntry{name:'MotionEvent.ACTION_DOWN'}) with d match p=(d)-[:Parent*1..]->(e)  return p";
+			
 			StatementResult result = GraphData.graphMatch(str);
 			AuthoritativePaths auPaths = SubGraphMining.miningProcess(result);
 			// System.out.println(auPaths.visualizationPaths());
