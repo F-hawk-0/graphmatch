@@ -32,7 +32,7 @@ public class GraphData {
 	public static void main(String[] args) {
 		try {
 			GraphData.databaseConnection();
-			String str = "match (n:Project)-[:Parent*0..]->(m:MethodDeclaration{name:'onTouchEvent'})-[*1..]->(b:SwitchStmt{name:'SwitchStmt'})-[:Parent]->(d:SwitchEntry{name:'MotionEvent.ACTION_MOVE'}) with d match p=(d)-[:Parent*1..]->(e)  return p";
+			String str = "match p=(n:Project)-[:Parent*0..]->(m:MethodDeclaration{name:'onFling'})-[:Parent*1..]->(b) return p";
 			StatementResult result = GraphData.graphMatch(str);
 			AuthoritativePaths auPaths = SubGraphMining.miningProcess(result);
 			// System.out.println(auPaths.visualizationPaths());
